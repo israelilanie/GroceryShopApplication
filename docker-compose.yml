@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  grocery-shop:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      APP_SECURITY_USERNAME: admin
+      APP_SECURITY_PASSWORD: admin123
