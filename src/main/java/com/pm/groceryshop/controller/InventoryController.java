@@ -1,48 +1,34 @@
 package com.pm.groceryshop.controller;
 
-import com.pm.groceryshop.dto.InventoryDTO;
-import com.pm.groceryshop.model.Inventory;
-import com.pm.groceryshop.service.GroceryItemService;
-import com.pm.groceryshop.service.InventoryService;
-import org.springframework.web.bind.annotation.*;
+import com.pm.groceryshop.dto.InventoryAdjustmentRequest;
+import com.pm.groceryshop.model.InventoryItem;
+import com.pm.groceryshop.service.GroceryShopService;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/inventory")
 public class InventoryController {
-    private final InventoryService inventoryService;
-    private final GroceryItemService groceryItemService;
 
+    private final GroceryShopService groceryShopService;
 
-    public InventoryController(InventoryService inventoryService, GroceryItemService groceryItemService) {
-        this.inventoryService = inventoryService;
-        this.groceryItemService = groceryItemService;
+    public InventoryController(GroceryShopService groceryShopService) {
+        this.groceryShopService = groceryShopService;
     }
 
     @GetMapping
-    public List<InventoryDTO> getAllInventories(){
-        return inventoryService.getAllInventories();
+    public List<InventoryItem> listInventory() {
+        return groceryShopService.listInventory();
     }
 
-    @GetMapping("/{id}")
-    public InventoryDTO getInventoryByItemId(@PathVariable Long id){
-        return inventoryService.getInventoryByItemId(id);
-    }
-    @PostMapping("/restock/{id}")
-    public InventoryDTO restock(@PathVariable Long id, @RequestParam Integer stock){
-        return inventoryService.increaseStock(id,stock);
-    }
-
-    @GetMapping("/low-stock")
-    public List<InventoryDTO> getLowStockItem(@RequestParam Integer stock){
-        return inventoryService.getLowStockItem(stock);
-    }
-
-    @PutMapping("/{id}")
-    public InventoryDTO updateStockQuantityByItemId(@PathVariable Long id, @RequestParam Integer stock){
-        return inventoryService.updateStockQuantityByItemId(id,stock);
+    @PostMapping("/adjust")
+    public InventoryItem adjustInventory(@Valid @RequestBody InventoryAdjustmentRequest request) {
+        return groceryShopService.adjustInventory(request);
     }
 }

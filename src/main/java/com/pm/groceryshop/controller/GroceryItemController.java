@@ -1,12 +1,18 @@
 package com.pm.groceryshop.controller;
 
-import com.pm.groceryshop.dto.GroceryItemCreateRequestDTO;
-import com.pm.groceryshop.dto.GroceryItemDTO;
 import com.pm.groceryshop.model.GroceryItem;
-import com.pm.groceryshop.service.GroceryItemService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import com.pm.groceryshop.service.GroceryShopService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -14,35 +20,36 @@ import java.util.List;
 @RequestMapping("/api/items")
 public class GroceryItemController {
 
-    GroceryItemService groceryItemService;
+    private final GroceryShopService groceryShopService;
 
-    public GroceryItemController(GroceryItemService groceryItemService) {
-        this.groceryItemService = groceryItemService;
+    public GroceryItemController(GroceryShopService groceryShopService) {
+        this.groceryShopService = groceryShopService;
     }
 
     @GetMapping
-    public List<GroceryItemCreateRequestDTO> getAllItems(){
-        return groceryItemService.getAllItems();
+    public List<GroceryItem> listItems() {
+        return groceryShopService.listItems();
     }
 
     @GetMapping("/{id}")
-    public GroceryItemCreateRequestDTO getItemById(@PathVariable Long id){
-        return groceryItemService.getItemById(id);
+    public GroceryItem getItem(@PathVariable Long id) {
+        return groceryShopService.getItem(id);
     }
+
     @PostMapping
-    public GroceryItemCreateRequestDTO createItem(@RequestBody GroceryItemDTO groceryItemDTO){
-        return groceryItemService.createItem(groceryItemDTO);
+    @ResponseStatus(HttpStatus.CREATED)
+    public GroceryItem createItem(@Valid @RequestBody GroceryItem item) {
+        return groceryShopService.createItem(item);
     }
-    
+
     @PutMapping("/{id}")
-    public GroceryItemCreateRequestDTO updateItem(@RequestBody GroceryItemDTO groceryItemDTO, @PathVariable Long id){
-        return groceryItemService.updateItem(groceryItemDTO,id);
+    public GroceryItem updateItem(@PathVariable Long id, @Valid @RequestBody GroceryItem item) {
+        return groceryShopService.updateItem(id, item);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteItem(@PathVariable Long id){
-        groceryItemService.deleteItem(id);
-        return ResponseEntity.ok().build();
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteItem(@PathVariable Long id) {
+        groceryShopService.deleteItem(id);
     }
-
 }
