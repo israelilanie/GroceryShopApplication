@@ -1,4 +1,13 @@
 package com.pm.groceryshop.repo;
 
-public interface InventoryRepository {
+import com.pm.groceryshop.model.Inventory;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface InventoryRepository extends JpaRepository<Inventory,Long> {
+    Inventory findByGroceryItemId(Long id);
+    List<Inventory> findByStockQuantityLessThan(Integer stock);
 }
