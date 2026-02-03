@@ -100,12 +100,10 @@ curl -u admin:admin123 \
 ./mvnw test
 ```
 
+CI is not configured for this repository.
+
 ## 🗃️ H2 Console
 
 The in-memory database console is enabled at: `http://localhost:8080/h2-console`
 
 JDBC URL: `jdbc:h2:mem:grocerydb`
-
-## 📦 CI
-
-GitHub Actions workflow is located at `.github/workflows/ci.yml` and runs Maven tests on pull requests and pushes to `main`.
