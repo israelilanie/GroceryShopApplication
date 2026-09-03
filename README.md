@@ -9,7 +9,7 @@ A Spring Boot backend for managing grocery items, inventory, and customer orders
 - Order creation and status updates (pending → processing → shipped → delivered)
 - H2 in-memory database for easy local development
 - Basic authentication for write operations
-- Dockerfile, Docker Compose, and CI workflow included
+- Dockerfile, Docker Compose, and GitHub Actions CI/CD workflow included
 
 ## 🚀 Getting Started
 
@@ -100,7 +100,17 @@ curl -u admin:admin123 \
 ./mvnw test
 ```
 
-CI is not configured for this repository.
+## ⚙️ CI/CD
+
+The GitHub Actions workflow in `.github/workflows/ci-cd.yml` runs on pull requests
+to `main` and pushes to `main`. It verifies the application with
+`./mvnw --batch-mode verify`, uploads the packaged JAR as a workflow artifact, and
+then builds and publishes a Docker image to GitHub Container Registry (GHCR) for
+successful `main` builds.
+
+Published images are available as `ghcr.io/<owner>/<repository>` with the
+`latest` tag and an immutable `sha-<commit>` tag. The publish job uses the
+repository-scoped `GITHUB_TOKEN`; no additional registry secret is required.
 
 ## 🗃️ H2 Console
 
