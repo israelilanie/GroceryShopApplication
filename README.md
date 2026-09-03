@@ -97,10 +97,19 @@ curl -u admin:admin123 \
 ## 🧪 Testing
 
 ```bash
-./mvnw test
+./mvnw verify
 ```
 
-CI is not configured for this repository.
+`verify` runs the unit and controller tests, writes the JaCoCo HTML report to
+`target/site/jacoco/index.html`, and enforces at least 70% line coverage for
+the API controllers and `GroceryShopService` business logic.
+
+## 🔁 CI/CD
+
+The GitHub Actions workflow runs on pull requests and pushes to `main`. It
+builds the application, runs `./mvnw verify`, and uploads the JaCoCo report as
+a workflow artifact. Pushes to `main` also publish the Docker image to GitHub
+Container Registry as `ghcr.io/<owner>/groceryshopapplication`.
 
 ## 🗃️ H2 Console
 

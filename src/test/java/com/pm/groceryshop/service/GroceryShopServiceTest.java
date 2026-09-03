@@ -62,6 +62,13 @@ class GroceryShopServiceTest {
     }
 
     @Test
+    void listItems_returnsRepositoryItems() {
+        when(groceryItemRepository.findAll()).thenReturn(List.of(groceryItem));
+
+        assertEquals(List.of(groceryItem), groceryShopService.listItems());
+    }
+
+    @Test
     void getItem_whenMissing_throwsResourceNotFound() {
         when(groceryItemRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -80,6 +87,48 @@ class GroceryShopServiceTest {
     }
 
     @Test
+    void updateItem_replacesAllEditableFields() {
+        GroceryItem update = new GroceryItem();
+        update.setName("Pear");
+        update.setCategory("Fresh fruit");
+        update.setDescription("Green pear");
+        update.setUnitPrice(BigDecimal.valueOf(3.25));
+        when(groceryItemRepository.findById(1L)).thenReturn(Optional.of(groceryItem));
+        when(groceryItemRepository.save(groceryItem)).thenReturn(groceryItem);
+
+        GroceryItem result = groceryShopService.updateItem(1L, update);
+
+        assertEquals("Pear", result.getName());
+        assertEquals("Fresh fruit", result.getCategory());
+        assertEquals("Green pear", result.getDescription());
+        assertEquals(BigDecimal.valueOf(3.25), result.getUnitPrice());
+    }
+
+    @Test
+    void deleteItem_deletesAttachedInventoryThenItem() {
+        InventoryItem inventory = new InventoryItem();
+        inventory.setGroceryItem(groceryItem);
+        when(groceryItemRepository.findById(1L)).thenReturn(Optional.of(groceryItem));
+        when(inventoryRepository.findByGroceryItem(groceryItem)).thenReturn(Optional.of(inventory));
+
+        groceryShopService.deleteItem(1L);
+
+        verify(inventoryRepository).delete(inventory);
+        verify(groceryItemRepository).delete(groceryItem);
+    }
+
+    @Test
+    void deleteItem_withoutInventory_deletesItem() {
+        when(groceryItemRepository.findById(1L)).thenReturn(Optional.of(groceryItem));
+        when(inventoryRepository.findByGroceryItem(groceryItem)).thenReturn(Optional.empty());
+
+        groceryShopService.deleteItem(1L);
+
+        verify(inventoryRepository, never()).delete(any());
+        verify(groceryItemRepository).delete(groceryItem);
+    }
+
+    @Test
     void adjustInventory_whenInventoryMissing_createsNewInventory() {
         InventoryAdjustmentRequest request = new InventoryAdjustmentRequest();
         request.setGroceryItemId(1L);
@@ -93,6 +142,37 @@ class GroceryShopServiceTest {
 
         assertEquals(12, result.getStockQuantity());
         assertNotNull(result.getLastUpdated());
+    }
+
+    @Test
+    void adjustInventory_updatesExistingInventory() {
+        InventoryAdjustmentRequest request = new InventoryAdjustmentRequest();
+        request.setGroceryItemId(1L);
+        request.setQuantity(8);
+        InventoryItem inventory = new InventoryItem();
+        inventory.setStockQuantity(2);
+        when(groceryItemRepository.findById(1L)).thenReturn(Optional.of(groceryItem));
+        when(inventoryRepository.findByGroceryItem(groceryItem)).thenReturn(Optional.of(inventory));
+        when(inventoryRepository.save(inventory)).thenReturn(inventory);
+
+        assertEquals(8, groceryShopService.adjustInventory(request).getStockQuantity());
+    }
+
+    @Test
+    void listInventoryAndOrders_returnRepositoryData() {
+        CustomerOrder order = new CustomerOrder();
+        when(inventoryRepository.findAll()).thenReturn(List.of());
+        when(orderRepository.findAll()).thenReturn(List.of(order));
+
+        assertTrue(groceryShopService.listInventory().isEmpty());
+        assertEquals(List.of(order), groceryShopService.listOrders());
+    }
+
+    @Test
+    void getOrder_whenMissing_throwsResourceNotFound() {
+        when(orderRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> groceryShopService.getOrder(99L));
     }
 
     @Test
@@ -140,6 +220,20 @@ class GroceryShopServiceTest {
 
         assertThrows(InsufficientStockException.class, () -> groceryShopService.createOrder(request));
         verify(orderRepository, never()).save(any());
+    }
+
+    @Test
+    void createOrder_whenInventoryMissing_throwsResourceNotFound() {
+        OrderItemRequest itemRequest = new OrderItemRequest();
+        itemRequest.setGroceryItemId(1L);
+        itemRequest.setQuantity(1);
+        CreateOrderRequest request = new CreateOrderRequest();
+        request.setCustomerName("Patrick");
+        request.setItems(List.of(itemRequest));
+        when(groceryItemRepository.findById(1L)).thenReturn(Optional.of(groceryItem));
+        when(inventoryRepository.findByGroceryItem(groceryItem)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> groceryShopService.createOrder(request));
     }
 
     @Test
